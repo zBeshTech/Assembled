@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="assembled">
+<xacro:property name="link_width" value="0.182" />
+<xacro:property name="body_radius" value="0.1" />
+<xacro:property name="wheel_radius" value="0.04" />
+<xacro:property name="caster_x" value="0.079" />
+<xacro:property name="body_height" value="0.095" />
+<!-- clearence padding -->
+<xacro:property name="clpd" value="0.005"/> 
+
+        <link name="base_link">
+                <visual>
+                        <geometry>
+                                <mesh filename="package://assembled/urdf/meshes/Body.stl"/>
+                        </geometry>
+                         <origin rpy="0 0 ${pi/2}" xyz="0 0 0"/>
+                </visual>
+        </link>
+        
+        <link name="laser">
+
+        </link>
+
+        <link name="left_wheel">
+                <visual>
+                        <geometry>
+                                <cylinder length="0.01" radius="${wheel_radius}"/>
+                        </geometry>
+                </visual>
+        </link>
+
+        <link name="right_wheel">
+                <visual>
+                        <geometry>
+                                <cylinder length="0.01" radius="${wheel_radius}"/>
+                        </geometry>
+                </visual>
+
+        </link>
+
+        <link name="caster">
+                <visual>
+                        <geometry>
+                                <cylinder length="0.01" radius="${wheel_radius}"/>
+                        </geometry>
+                </visual>
+        </link>
+
+
+        <joint name="base_link_to_laser" type="fixed">
+                <parent link="base_link"/>
+                <child link="laser"/>
+                <origin xyz="0 0 ${body_height+0.05}" rpy="0.0 0.0 0.0"/>
+        </joint>
+
+        <joint name="base_link_to_left_wheel" type="continuous">
+                <parent link="base_link"/>
+                <child link="left_wheel"/>
+                <origin xyz="0.0 ${link_width/2} ${-body_height/2 + wheel_radius - clpd}" rpy="${pi/2} 0.0  0.0"/>
+                <axis xyz="0 1 0"/>
+        </joint>
+
+        <joint name="base_link_to_right_wheel" type="continuous">
+                <parent link="base_link"/>
+                <child link="right_wheel"/>
+                <origin xyz="0.0 ${-link_width/2} ${-body_height/2+wheel_radius -clpd}" rpy="${pi/2} 0.0 0.0"/>
+                <axis xyz="0 1 0"/>
+        </joint>
+
+        <joint name="base_link_to_caster" type="fixed">
+                <parent link="base_link"/>
+                <child link="caster"/>
+                <origin xyz="${caster_x} 0.0 ${-body_height/2 + wheel_radius}" rpy="0.0 ${pi/2} 0.0"/>
+        </joint>
+        
+        
+</robot>
+

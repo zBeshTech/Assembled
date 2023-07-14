@@ -1,0 +1,27 @@
+<launch>
+	<!-- use serial port? -->
+	<arg name="use_sp" default="false"/>
+	<arg name="use_telep_keyboard" default="false"/>
+
+	<!-- include robot description bring up launch file -->
+	<include file="$(find assembled)/launch/robot_description_bringup.launch">
+		<arg name="use_gui" value="false"/>
+	</include>
+
+	<!--  ************** Odometry ***************  -->
+	<rosparam file="$(find assembled)/config/diff_drive_param.yaml" command="load" />
+
+	<node name="assmebled_controller" pkg="assembled" type="assembled_node" output="screen">
+	</node>
+
+	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find assembled)/rviz/config_file.rviz" />
+	
+	<node if="$(arg use_telep_keyboard)" name="teleop_twist_keyboard" pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" />
+
+	<node if="$(arg use_sp)" name="serial_node" pkg="rosserial_python" type="serial_node.py">
+		<param name="port" value="/dev/ttyUSB0"/>
+	</node>
+		
+	<!-- bring up of assembled the diff drive controller -->
+
+</launch>
