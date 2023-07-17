@@ -1,0 +1,31 @@
+<launch>
+	<include file="$(find assembled)/launch/assembled_bringup.launch">
+		<arg name="use_gui" value="false"/>
+	</include>
+	 <rosparam file="$(find assembled)/config/diff_drive_param.yaml" />
+	        <!--  ************** Navigation ***************  -->
+        <arg name="map_file" default="$(find assembled)/empty_map.yaml"/>
+        <!-- Run the map server -->
+        <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" /> 
+        <node pkg="tf" type="static_transform_publisher" name="odom_to_map" args="0  0  0  0  0  0  /map /odom 10" />       
+        
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find assembled)/rviz/rvizmovebase.rviz" required="true" />
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+	        
+  	  	<rosparam file="$(find assembled)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />
+  	 	<rosparam file="$(find assembled)/cfg/costmap_common_params.yaml" command="load" ns="local_costmap" />
+  		<rosparam file="$(find assembled)/cfg/local_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find assembled)/cfg/global_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find assembled)/cfg/dwa_local_planner_params.yaml" command="load" />
+
+		<param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+
+		<!-- updateing plan, TODO make it dynamic and intelligent  -->
+		<param name="planner_frequency" value="0.25" />
+		<param name="controller_frequency" value="10.0" />
+		<param name="controller_patience" value="15.0" />
+	<!-- assembled can rotate in place -->
+      		<param name="clearing_rotation_allowed" value="true" />
+	</node>
+
+</launch>

@@ -72,8 +72,40 @@ public:
 
     // get odom
     std::pair<float, float> getOdom(){
-        ROS_INFO_STREAM("Odometry: vx: " << vx << " vth: " << vth);
         return std::make_pair(vx, vth);
+    }
+};
+
+// write a class for timeout functinoality
+class Timeout
+{
+private:
+    /* data */
+    ros::Time start_time;
+    ros::Duration timeout;
+    bool initialized{false};
+public:
+    Timeout(){
+        timeout = ros::Duration(0.5);
+    }
+    Timeout(ros::Duration duration):timeout(duration){
+        start_time = ros::Time::now();
+        initialized = true;
+    }
+    ~Timeout(){}
+    bool isTimedOut(){
+        if(!initialized){
+            ROS_ERROR_STREAM("Timeout not initialized, default timeout is 0.5s");
+            return true;
+        }
+        return (ros::Time::now() - start_time) > timeout;
+    }
+    void Update(){
+        start_time = ros::Time::now();
+            if(!initialized){
+                ROS_ERROR_STREAM("Timeout not initialized, default timeout is 0.5s");
+            return;
+        }
     }
 };
 

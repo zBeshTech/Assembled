@@ -1,7 +1,7 @@
 assembled:
+  timer_period: 0.1  # 10 Hz this needs to synch with move base controller at assembled/launch/assembled_move_base.launch
   differential_drive:
     wheel_separation: 0.18
     wheel_radius: 0.04
     wheel_max_speed: 500.0
     wheel_min_speed: 200.0
-  

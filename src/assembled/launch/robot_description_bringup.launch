@@ -1,6 +1,6 @@
 <launch>
 				<!--  ************** Odometry ***************  -->
-	<arg name="use_gui" default="true"/>
+	<arg name="use_gui" default="false"/>
 	<param name="robot_description"  command="xacro --inorder '$(find assembled)/urdf/assembled.urd.xacro'"/>
 	
 	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />

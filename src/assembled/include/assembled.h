@@ -34,6 +34,7 @@ public:
     tf::TransformBroadcaster odom_broadcaster;
     ros::Timer timer;
     ros::Time current_time, last_time;
+    Timeout timeout;
     double v{0}, w{0}, x{0}, y{0}, th{0};
     double vx{0}, vy{0}, vth{0};
 

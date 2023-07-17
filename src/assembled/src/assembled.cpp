@@ -4,24 +4,28 @@ Assembled::Assembled():
            nh("~"),
            vel_sub(nh.subscribe("/cmd_vel", 0.2, &Assembled::velCallback, this)),
            odom_pub(nh.advertise<nav_msgs::Odometry>("odom", 50)),
-           timer(nh.createTimer(ros::Duration(0.3), &Assembled:: timerCallback, this)),
-           current_time(ros::Time::now()),
-           last_time(ros::Time::now()),
             v(0), w(0), x(0), y(0), th(0), vx(0), vy(0), vth(0)
 {
     Init();
 }
 
 void Assembled::Init(){
+     const std::string param_prefix = "/assembled/";
+    // get params
+    const float wr = ros::param::param<float>(param_prefix + "timer_period", 0.3);
+    timeout = Timeout(ros::Duration(wr*2));
+    timer = nh.createTimer(ros::Duration(ros::Duration(wr)), &Assembled:: timerCallback, this);
     diff_drive_ptr = std::make_unique<DifferentialDrive>(nh);
+    // print params
+    ROS_INFO_STREAM("timer_period: " << wr);
+    
 }
 void Assembled::velCallback(const geometry_msgs::Twist::ConstPtr &msg)
 {
     v = msg->linear.x;
     w = msg->angular.z;
-    ROS_INFO("velCallback:");
-    ROS_INFO("v: %f, w: %f", v, w);
-    
+
+    timeout.Update();
 }
 
 void Assembled::timerCallback(const ros::TimerEvent &event)
@@ -32,7 +36,6 @@ void Assembled::timerCallback(const ros::TimerEvent &event)
         throw std::runtime_error("diff_drive_ptr is null");
         return;
     }
-    ROS_INFO("timerCallback:");
     current_time = ros::Time::now();
     // get odometry
     std::tie(vx, vth)  = diff_drive_ptr->getOdom();
@@ -49,14 +52,22 @@ void Assembled::timerCallback(const ros::TimerEvent &event)
     publishOdometry();
     
     // publish new wheel speeds
-    diff_drive_ptr->update(v, w);
+    if (timeout.isTimedOut() && (v != 0.0 || w != 0.0))
+    {
+        diff_drive_ptr->brake();
+        v = 0.0; w = 0.0;
+        ROS_INFO("drive train timeout");
+    }
+    else
+    {
+        diff_drive_ptr->update(v, w);
+    }
     diff_drive_ptr->publish();
     last_time = current_time;
 }
 
 void Assembled::publishOdometry()
 {
-    // geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
     //first, we'll publish the transform over tf
     geometry_msgs::TransformStamped odom_trans;
     auto odom_quat = tf::createQuaternionMsgFromYaw(th);

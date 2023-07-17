@@ -2,12 +2,12 @@ TrajectoryPlannerROS:
   # for details see: http://www.ros.org/wiki/base_local_planner
   odom_topic: odom
   
-  max_vel_x: 0.3
-  min_vel_x: 0.05
-  max_rotational_vel: 0.8   # 0.1 rad/sec = 5.7 degree/sec
-  min_in_place_rotational_vel: 0.02
+  max_vel_x: 0.63
+  min_vel_x: 0.25
+  max_rotational_vel: 6.8   # 0.1 rad/sec = 5.7 degree/sec
+  min_in_place_rotational_vel: 0.3
   acc_lim_th: 0.3
-  acc_lim_x: 0.05
+  acc_lim_x: 0.2
   acc_lim_y: 0.05
   holonomic_robot: false
   
@@ -17,11 +17,11 @@ TrajectoryPlannerROS:
   latch_xy_goal_tolerance: false
   
   # Forward Simulation Parameters
-  sim_time: 1                          # The amount of time to forward-simulate trajectories in seconds
+  sim_time: 3                          # The amount of time to forward-simulate trajectories in seconds
   sim_granularity: 0.025               # The step size, in meters, to take between points on a given trajectory
-  angular_sim_granularity: 0.01        # The step size, in radians, to take between angular samples on a given trajectory.
-  vx_samples: 10                       # The number of samples to use when exploring the x velocity space
-  vtheta_samples: 20                   # The number of samples to use when exploring the theta velocity space
+  angular_sim_granularity: 0.1        # The step size, in radians, to take between angular samples on a given trajectory.
+  vx_samples: 4                       # The number of samples to use when exploring the x velocity space
+  vtheta_samples: 5                   # The number of samples to use when exploring the theta velocity space
   controller_frequency: 10             # The frequency at which this controller will be called in Hz
 
   # Trajectory Scoring Parameters
