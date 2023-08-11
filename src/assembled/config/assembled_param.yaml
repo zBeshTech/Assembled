@@ -1,0 +1,24 @@
+assembled:
+  timer_period: 0.1  # 10 Hz this needs to synch with move base controller at assembled/launch/assembled_move_base.launch
+  differential_drive:
+    wheel_separation: 0.18
+    wheel_radius: 0.04
+    wheel_max_speed: 500.0 # 500 steps/s
+    wheel_min_speed: 200.0 # 200 steps/s
+    body_radius: 0.1
+    caster_offset_x: 0.1
+    body_height: 0.095
+    # list of available bumper names to query locations from rosparam, since it does not allow nested maps from vectors
+  bumpers:
+    - bumper_left
+    - bumper_right
+# list of bumper locations in the order of the bumper names above
+bumpers_locations:
+  bumper_left:
+      x: 0.08
+      y: -0.08
+      z: 0.02
+  bumper_right:
+      x: 0.08
+      y: 0.08
+      z: 0.02

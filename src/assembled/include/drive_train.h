@@ -23,6 +23,7 @@ public:
     virtual void init() = 0;
     virtual void ComputeWheelSpeeds() = 0;
     virtual void brake() = 0;
+    virtual void execute_recovey_behavior() = 0;
 };
 
 class DifferentialDrive : public DriveTrain
@@ -45,6 +46,7 @@ private:
     // ros
     ros::Publisher rw_vel_pub;
     ros::Publisher lw_vel_pub;
+    std::string name;
     
 protected:
     void init();
@@ -52,7 +54,7 @@ protected:
     void applyWheelSpeedsLimits();
 
 public:
-    DifferentialDrive (ros::NodeHandle& nh);
+    DifferentialDrive (std::string name, ros::NodeHandle& nh);
     ~DifferentialDrive() = default;
     void ComputeWheelSpeeds () override;
     void brake() override;
@@ -74,6 +76,7 @@ public:
     std::pair<float, float> getOdom(){
         return std::make_pair(vx, vth);
     }
+    void execute_recovey_behavior() override;
 };
 
 // write a class for timeout functinoality
@@ -95,7 +98,7 @@ public:
     ~Timeout(){}
     bool isTimedOut(){
         if(!initialized){
-            ROS_ERROR_STREAM("Timeout not initialized, default timeout is 0.5s");
+            ROS_ERROR_STREAM("Timeout duration not initialized, default timeout is 0.5s");
             return true;
         }
         return (ros::Time::now() - start_time) > timeout;
@@ -103,7 +106,7 @@ public:
     void Update(){
         start_time = ros::Time::now();
             if(!initialized){
-                ROS_ERROR_STREAM("Timeout not initialized, default timeout is 0.5s");
+                ROS_ERROR_STREAM("Timeout duration not initialized, default timeout is 0.5s");
             return;
         }
     }

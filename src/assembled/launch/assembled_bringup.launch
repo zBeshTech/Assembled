@@ -2,15 +2,15 @@
 	<!-- use serial port? -->
 	<arg name="use_sp" default="false"/>
 	<arg name="use_telep_keyboard" default="false"/>
-	<arg name="use_gui" default="false"/>
+	<arg name="use_gui" default="true"/>
 
 	<!-- include robot description bring up launch file -->
 	<include file="$(find assembled)/launch/robot_description_bringup.launch">
-		
+		<arg name="use_gui" value="false"/>
 	</include>
 
 	<!--  ************** Odometry ***************  -->
-	<rosparam file="$(find assembled)/config/diff_drive_param.yaml" command="load" />
+	<rosparam file="$(find assembled)/config/assembled_param.yaml" command="load" />
 
 	<node name="assmebled_controller" pkg="assembled" type="assembled_node" output="screen">
 	</node>

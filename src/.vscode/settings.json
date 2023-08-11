@@ -72,7 +72,8 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bit": "cpp"
+        "bit": "cpp",
+        "csignal": "cpp"
     },
     "cmake.sourceDirectory": "/home/berry/Assembled/src/assembled"
 }

@@ -1,15 +1,16 @@
 <launch>
+	<arg name="use_gui" default="true"/>
+
 	<include file="$(find assembled)/launch/assembled_bringup.launch">
 		<arg name="use_gui" value="false"/>
 	</include>
-	 <rosparam file="$(find assembled)/config/diff_drive_param.yaml" />
 	        <!--  ************** Navigation ***************  -->
         <arg name="map_file" default="$(find assembled)/empty_map.yaml"/>
         <!-- Run the map server -->
         <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" /> 
         <node pkg="tf" type="static_transform_publisher" name="odom_to_map" args="0  0  0  0  0  0  /map /odom 10" />       
         
-	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find assembled)/rviz/rvizmovebase.rviz" required="true" />
+	<node if="$(arg use_gui)" name="rviz" pkg="rviz" type="rviz" args="-d $(find assembled)/rviz/rvizmovebase.rviz" required="true" />
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
 	        
   	  	<rosparam file="$(find assembled)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />

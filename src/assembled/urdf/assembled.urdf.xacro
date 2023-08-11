@@ -1,17 +1,22 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="assembled">
-<xacro:property name="link_width" value="0.182" />
-<xacro:property name="body_radius" value="0.1" />
-<xacro:property name="wheel_radius" value="0.04" />
-<xacro:property name="caster_x" value="0.079" />
-<xacro:property name="body_height" value="0.095" />
+<!-- import paramters from file -->
+
+<xacro:property name="yaml_file" value="$(find assembled)/config/assembled_param.yaml" />
+<xacro:property name="aparam" value="${xacro.load_yaml(yaml_file)}"/>
+
+<xacro:property name="link_width" value="${aparam['assembled']['differential_drive']['wheel_separation']}" />
+<xacro:property name="body_radius" value="${aparam['assembled']['differential_drive']['body_radius']}" />
+<xacro:property name="wheel_radius" value="${aparam['assembled']['differential_drive']['wheel_radius']}" />
+<xacro:property name="caster_x" value="${aparam['assembled']['differential_drive']['caster_offset_x']}" />
+<xacro:property name="body_height" value="${aparam['assembled']['differential_drive']['body_height']}" />
 <!-- clearence padding -->
 <xacro:property name="clpd" value="0.005"/> 
 
         <link name="base_link">
                 <visual>
                         <geometry>
-                                <mesh filename="package://assembled/urdf/meshes/Body.stl"/>
+                                <mesh filename="package://assembled/urdf/meshes/body.stl"/>
                         </geometry>
                          <origin rpy="0 0 ${pi/2}" xyz="0 0 0"/>
                 </visual>

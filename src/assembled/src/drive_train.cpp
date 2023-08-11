@@ -25,7 +25,8 @@ void DifferentialDrive::init(){
     ROS_INFO("wheel_seperation: %f", wheel_seperation);
 
 }
-DifferentialDrive::DifferentialDrive(ros::NodeHandle&nh):
+DifferentialDrive::DifferentialDrive(std::string name, ros::NodeHandle&nh):
+name(name),
 DriveTrain(nh),
 linear_x(0), angular_z(0), v_r(0), v_l(0), vx(0), vth(0)
 {
@@ -62,6 +63,13 @@ void DifferentialDrive::publish(){
     // publish
     rw_vel_pub.publish(rw_msg);
     lw_vel_pub.publish(lw_msg);
+}
+void DifferentialDrive::execute_recovey_behavior(){
+    // stop the robot
+    brake();
+    // back up for 1 second at minumum speed
+    update(-min_speed + 0.1*min_speed, 0);
+    ros::Duration(1).sleep();
 }
 // apply speed limits
 void DifferentialDrive::applyWheelSpeedsLimits(){

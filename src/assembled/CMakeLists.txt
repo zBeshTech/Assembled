@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
+add_compile_options(-std=c++17)
 project(assembled)
 
 
@@ -9,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   tf
 )
 
@@ -133,7 +135,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/assembled_node.cpp src/assembled.cpp src/drive_train.cpp)
+add_executable(${PROJECT_NAME}_node src/assembled_node.cpp src/assembled.cpp src/drive_train.cpp src/sensor2pc_manager.cpp src/sensor.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
