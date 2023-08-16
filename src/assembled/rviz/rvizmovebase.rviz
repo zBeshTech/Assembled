@@ -1,14 +1,15 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 78
+    Help Height: 181
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Robot1/TF1
         - /Robot1/TF1/Frames1
         - /PointCloud21
       Splitter Ratio: 0.5
-    Tree Height: 708
+    Tree Height: 605
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -293,19 +294,19 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: ""
+      Color: 85; 255; 0
+      Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
-      Max Color: 255; 255; 255
+      Max Color: 255; 0; 0
       Min Color: 0; 0; 0
       Name: PointCloud2
-      Position Transformer: ""
+      Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.009999999776482582
+      Size (m): 0.10000000149011612
       Style: Flat Squares
       Topic: /assmebled_controller/sensors
       Unreliable: false
@@ -316,7 +317,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -340,7 +341,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 13.302967071533203
+      Distance: 7.315545082092285
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -348,17 +349,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.2642894983291626
-        Y: 0.7228132486343384
-        Z: -0.0008857956854626536
+        X: 0.9086653590202332
+        Y: -0.65389484167099
+        Z: -0.1794520914554596
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.034796118736267
+      Pitch: 1.1697962284088135
       Target Frame: <Fixed Frame>
-      Yaw: 4.2703938484191895
+      Yaw: 4.225393295288086
     Saved: ~
 Window Geometry:
   Displays:
@@ -376,5 +377,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1908
-  X: 1920
-  Y: 0
+  X: 1888
+  Y: -32

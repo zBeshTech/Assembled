@@ -1,4 +1,7 @@
-#include"assembled.h"
+#include "assembled.h"
+#include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
+
 Assembled::Assembled(std::string name):
            name(name),  
            nh("~"),
@@ -8,6 +11,87 @@ Assembled::Assembled(std::string name):
 {
     Init();
 }
+
+void Assembled::performRecoveryRoutine(Sensor &sensor){
+    // change state, break, and call recovery routine on drivetrain
+    if (diff_drive_ptr == nullptr)
+    {
+        ROS_ERROR("diff_drive_ptr is null");
+        throw std::runtime_error("diff_drive_ptr is null");
+        return;
+    }
+    // add point in pointcloud
+    ROS_WARN_STREAM("Sensor triggered: " << sensor.getName());
+    // frameid, topic
+    auto sensor2pc_manager = Sensor2PcManager::getInstance(nh, "map", "sensors" );
+    float sx, sy, sz, pointx, pointy, pointz;
+    std::tie(sx, sy, sz) = sensor.getCoordinates();
+    
+    double delta_x = (sx * cos(th) - sy * sin(th));
+    double delta_y = (sx * sin(th) + sy * cos(th));
+    double delta_th = 0;
+    pointx = x + delta_x;
+    pointy = y + delta_y;
+    pointz = sz;
+    
+    try
+    {
+        sensor2pc_manager->publish( sx, sy, sz );
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
+    // if robot is not already stopped
+    if (state != State::STOPPED){
+        ROS_INFO("performing recovery routine");
+        // brake
+        diff_drive_ptr->brake();
+        v = 0.0; w = 0.0;
+        // call recovery routine
+        changeState(State::STOPPED);
+        diff_drive_ptr->executeRecoveyBehavior();
+        //UPDATE AND publish odom
+        publishOdometry();
+        while (ros::ok() && sensor.isTriggered())
+        {
+            ros::Rate(0.2).sleep();
+            ros::spinOnce();
+            publishOdometry();
+        }
+        // change state
+        changeState(State::IDLE);
+    }
+}
+
+void Assembled::changeState(State new_state){
+    auto stateToString = [](State state) -> std::string {
+        std::string state_str;
+        switch (state)
+        {
+            case State::IDLE:
+                state_str = "IDLE";
+                break;
+            case State::MOVING:
+                state_str = "MOVING";
+                break;
+            case State::STOPPED:
+                state_str = "STOPPED";
+                break;
+            case State::ERROR:
+                state_str = "ERROR";
+                break;
+        }
+        return state_str;
+    };
+    if (state != new_state)
+    {
+        ROS_INFO_STREAM("changing state from " << stateToString(state) << " to " << stateToString(new_state));
+        state = new_state;
+    }
+}
+
 
 void Assembled::Init(){
     // based on assembled/config/assembled_param.yaml
@@ -29,50 +113,29 @@ void Assembled::Init(){
     {
         nh.getParam(bumper_prefix, bumper_names);
         ROS_INFO_STREAM("bumper size: " << bumper_names.size());
-         for (auto bname : bumper_names)
-    {
-        ROS_INFO_STREAM("bumper_name: " << bname);
-        const std::string bprefix = bumper_locations_prefix + bname + "/";
-        if (ros::param::has(bprefix)){
-            const float x = ros::param::param<float>(bprefix + "x", 0.0);
-            const float y = ros::param::param<float>(bprefix + "y", 0.0);
-            const float z = ros::param::param<float>(bprefix + "z", 0.0);
-            ROS_INFO_STREAM("bumper_name: " << bname << ". x: " << x << " y: " << y << " z: " << z);
-            sensors.push_back(std::make_unique<bumper>(nh, this->name + "/" + bname, x, y, z));
- 
-        }
-        else
+        for (auto bname : bumper_names)
         {
-            ROS_INFO_STREAM("could not find bumper location for: " << bname << "putting zeros.");
+            ROS_INFO_STREAM("bumper_name: " << bname);
+            const std::string bprefix = bumper_locations_prefix + bname + "/";
+            if (ros::param::has(bprefix)){
+                const float x = ros::param::param<float>(bprefix + "x", 0.0);
+                const float y = ros::param::param<float>(bprefix + "y", 0.0);
+                const float z = ros::param::param<float>(bprefix + "z", 0.0);
+                ROS_INFO_STREAM("bumper_name: " << bname << " x: " << x << " y: " << y << " z: " << z);
+                sensors.push_back(std::make_unique<bumper>(nh, this->name + "/" + bname, x, y, z, *this));    
+            }
+            else
+            {
+                ROS_INFO_STREAM("could not find bumper location for: " << bname << "putting zeros.");
+            }
         }
-   }
-
     }
     else
     {
         ROS_INFO_STREAM("bumper_prefix does not exist");
     }
-
-   
 }
 
-bool Assembled::checkSensors()
-{
-    bool ret = true;
-    for (auto &s : sensors)
-    {
-        if (s->isTriggered())
-        {
-            ROS_WARN_STREAM("Sensor triggered: " << s->getName());
-            ret = false;
-            auto sensor2pc_manager = Sensor2PcManager::getInstance(nh, "base_link", "sensors" );
-            float x, y, z;
-            std::tie(x, y, z) = s->getCoordinates();
-            sensor2pc_manager->publish( x, y, z );
-        }
-    }
-    return ret;
-}
 void Assembled::velCallback(const geometry_msgs::Twist::ConstPtr &msg)
 {
     v = msg->linear.x;
@@ -90,46 +153,47 @@ void Assembled::timerCallback(const ros::TimerEvent &event)
         throw std::runtime_error("diff_drive_ptr is null");
         return;
     }
-    current_time = ros::Time::now();
-    // get odometry
-    std::tie(vx, vth)  = diff_drive_ptr->getOdom();
-     // compute odometry
-    double dt = (current_time - last_time).toSec();
-    double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
-    double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
-    double delta_th = vth * dt;
-    // publish odometry
-    x += delta_x;
-    y += delta_y;
-    th += delta_th;
+
     //  publish odom and transform
     publishOdometry();
     
     // publish new wheel speeds
     // if we didn't receive new commands for a while, we'll stop
     // if any of the sensors are triggered, we'll stop (TO-DO later do recovery behavior)
-    if (timeout.isTimedOut() && (v != 0.0 || w != 0.0))
+    if (timeout.isTimedOut() && (state != State::IDLE))
     {
         diff_drive_ptr->brake();
         v = 0.0; w = 0.0;
         ROS_WARN("drive train timeout");
+        changeState(State::IDLE);
     }
-    else if (!checkSensors() && (v != 0.0 || w != 0.0))
+    else if (state == State::STOPPED)
     {
-        diff_drive_ptr->brake();
-        v = 0.0; w = 0.0;
-        ROS_WARN("sensor triggered and moving");
+        // do nothing
     }
-    else
+    else if (!timeout.isTimedOut()) //idle or moving, or error i guesse 
     {
         diff_drive_ptr->update(v, w);
+        changeState(Assembled::State::MOVING);
+        diff_drive_ptr->publish();
     }
-    diff_drive_ptr->publish();
     last_time = current_time;
 }
 
 void Assembled::publishOdometry()
 {
+    // UPDATE 
+    current_time = ros::Time::now();
+    std::tie(vx, vth)  = diff_drive_ptr->getOdom();
+     // compute odometry
+    double dt = (current_time - last_time).toSec();
+    double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
+    double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
+    double delta_th = vth * dt;
+    x += delta_x;
+    y += delta_y;
+    th += delta_th;
+    //PUBLISH
     //first, we'll publish the transform over tf
     geometry_msgs::TransformStamped odom_trans;
     auto odom_quat = tf::createQuaternionMsgFromYaw(th);

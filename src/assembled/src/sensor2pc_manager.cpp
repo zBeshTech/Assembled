@@ -17,23 +17,22 @@ void Sensor2PcManager::initPc(std::string frame_id)
     pc.height = 1;
     pc.width = 0;
     pc.is_bigendian = false;
-    pc.is_dense = false;
+    pc.is_dense = true;
     // passes cloud by reference
-    modifier = std::make_unique<sensor_msgs::PointCloud2Modifier>(pc); 
-    modifier->setPointCloud2FieldsByString(0, "xyz");
 }
 
 void Sensor2PcManager::addPoint(float x, float y, float z)
 {
-
-    modifier->resize(pc.width + 1);
+    // append one point to the point cloud
+    sensor_msgs::PointCloud2Modifier modifier(pc);
+    modifier.setPointCloud2FieldsByString(1, "xyz");
+    modifier.resize(pc.width + 1);
     sensor_msgs::PointCloud2Iterator<float> iter_x(pc, "x");
     sensor_msgs::PointCloud2Iterator<float> iter_y(pc, "y");
     sensor_msgs::PointCloud2Iterator<float> iter_z(pc, "z");
     iter_x[pc.width] = x;
     iter_y[pc.width] = y;
     iter_z[pc.width] = z;
-    pc.width++;
 }
 
 void Sensor2PcManager::publishPc()
@@ -43,7 +42,9 @@ void Sensor2PcManager::publishPc()
 
 void Sensor2PcManager::publish(float x, float y, float z)
 {
+    ROS_INFO("Adding point");
     addPoint(x, y, z);
+    ROS_INFO("Publishing point cloud");
     publishPc();
 }
 

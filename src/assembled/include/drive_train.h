@@ -23,7 +23,7 @@ public:
     virtual void init() = 0;
     virtual void ComputeWheelSpeeds() = 0;
     virtual void brake() = 0;
-    virtual void execute_recovey_behavior() = 0;
+    virtual void executeRecoveyBehavior() = 0;
 };
 
 class DifferentialDrive : public DriveTrain
@@ -76,7 +76,7 @@ public:
     std::pair<float, float> getOdom(){
         return std::make_pair(vx, vth);
     }
-    void execute_recovey_behavior() override;
+    void executeRecoveyBehavior() override;
 };
 
 // write a class for timeout functinoality

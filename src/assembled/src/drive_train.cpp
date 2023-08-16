@@ -52,6 +52,7 @@ void DifferentialDrive::brake(){
     v_r = 0.0;
     v_l = 0.0;
     update(0,0);
+    publish();
 }
 
 void DifferentialDrive::publish(){
@@ -64,12 +65,14 @@ void DifferentialDrive::publish(){
     rw_vel_pub.publish(rw_msg);
     lw_vel_pub.publish(lw_msg);
 }
-void DifferentialDrive::execute_recovey_behavior(){
+void DifferentialDrive::executeRecoveyBehavior() {
     // stop the robot
     brake();
     // back up for 1 second at minumum speed
     update(-min_speed + 0.1*min_speed, 0);
-    ros::Duration(1).sleep();
+    publish();
+    ROS_WARN_STREAM("executing recovery behavior");
+    
 }
 // apply speed limits
 void DifferentialDrive::applyWheelSpeedsLimits(){

@@ -12,9 +12,6 @@ class Sensor2PcManager
   // implement this as a singleton
   static bool is_initialized;
   static Sensor2PcManager* singleton;
-
-  std::unique_ptr<sensor_msgs::PointCloud2Modifier> modifier;
-
   ros::Publisher pc_pub;
   sensor_msgs::PointCloud2 pc;
   std::string topic_name;
