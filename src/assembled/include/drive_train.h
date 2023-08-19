@@ -6,9 +6,6 @@
 // ros
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
-// urdf 
-#include <urdf/urdfdom_compatibility.h>
-#include <urdf_parser/urdf_parser.h>
 
 class DriveTrain
 {
