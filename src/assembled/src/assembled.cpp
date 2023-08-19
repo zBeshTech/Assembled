@@ -23,27 +23,28 @@ void Assembled::performRecoveryRoutine(Sensor &sensor){
     // add point in pointcloud
     ROS_WARN_STREAM("Sensor triggered: " << sensor.getName());
     // frameid, topic
-    auto sensor2pc_manager = Sensor2PcManager::getInstance(nh, "map", "sensors" );
+    auto sensor2pc_manager = Sensor2PcManager::getInstance(nh, "odom", "sensors" );
     float sx, sy, sz, pointx, pointy, pointz;
     std::tie(sx, sy, sz) = sensor.getCoordinates();
     
     double delta_x = (sx * cos(th) - sy * sin(th));
     double delta_y = (sx * sin(th) + sy * cos(th));
-    double delta_th = 0;
     pointx = x + delta_x;
     pointy = y + delta_y;
     pointz = sz;
+
+    ROS_INFO_STREAM("Adding point: " << pointx << " " << pointy << " " << pointz);
     
     try
     {
-        sensor2pc_manager->publish( sx, sy, sz );
+        sensor2pc_manager->publish( pointx, pointy, pointz);
     }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
     }
     
-    // if robot is not already stopped
+    // if robot is not already stopped, and start reversing
     if (state != State::STOPPED){
         ROS_INFO("performing recovery routine");
         // brake
@@ -51,17 +52,7 @@ void Assembled::performRecoveryRoutine(Sensor &sensor){
         v = 0.0; w = 0.0;
         // call recovery routine
         changeState(State::STOPPED);
-        diff_drive_ptr->executeRecoveyBehavior();
-        //UPDATE AND publish odom
-        publishOdometry();
-        while (ros::ok() && sensor.isTriggered())
-        {
-            ros::Rate(0.2).sleep();
-            ros::spinOnce();
-            publishOdometry();
-        }
-        // change state
-        changeState(State::IDLE);
+        changeState(State::REVERSE);
     }
 }
 
@@ -82,6 +73,9 @@ void Assembled::changeState(State new_state){
             case State::ERROR:
                 state_str = "ERROR";
                 break;
+            case State::REVERSE:
+                state_str = "REVERSE";
+                break;
         }
         return state_str;
     };
@@ -91,7 +85,6 @@ void Assembled::changeState(State new_state){
         state = new_state;
     }
 }
-
 
 void Assembled::Init(){
     // based on assembled/config/assembled_param.yaml
@@ -160,7 +153,7 @@ void Assembled::timerCallback(const ros::TimerEvent &event)
     // publish new wheel speeds
     // if we didn't receive new commands for a while, we'll stop
     // if any of the sensors are triggered, we'll stop (TO-DO later do recovery behavior)
-    if (timeout.isTimedOut() && (state != State::IDLE))
+    if (timeout.isTimedOut() && (state == State::MOVING))
     {
         diff_drive_ptr->brake();
         v = 0.0; w = 0.0;
@@ -170,12 +163,21 @@ void Assembled::timerCallback(const ros::TimerEvent &event)
     else if (state == State::STOPPED)
     {
         // do nothing
+        diff_drive_ptr->brake();
+    }
+    else if (state == State::REVERSE)
+    {
+        diff_drive_ptr->update(-0.3, 0);        
+        diff_drive_ptr->publish();
     }
     else if (!timeout.isTimedOut()) //idle or moving, or error i guesse 
     {
         diff_drive_ptr->update(v, w);
         changeState(Assembled::State::MOVING);
         diff_drive_ptr->publish();
+    }
+    else {
+        diff_drive_ptr->brake();
     }
     last_time = current_time;
 }

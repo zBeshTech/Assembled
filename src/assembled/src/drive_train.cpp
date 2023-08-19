@@ -49,9 +49,7 @@ void DifferentialDrive::ComputeWheelSpeeds()
 }
 
 void DifferentialDrive::brake(){
-    v_r = 0.0;
-    v_l = 0.0;
-    update(0,0);
+    update(0, 0);
     publish();
 }
 
@@ -68,11 +66,12 @@ void DifferentialDrive::publish(){
 void DifferentialDrive::executeRecoveyBehavior() {
     // stop the robot
     brake();
-    // back up for 1 second at minumum speed
-    update(-min_speed + 0.1*min_speed, 0);
+    // start moving back untill speed is updated from robot
+    v_l = -min_speed;
+    v_r = min_speed;
+    computeOdom();
     publish();
     ROS_WARN_STREAM("executing recovery behavior");
-    
 }
 // apply speed limits
 void DifferentialDrive::applyWheelSpeedsLimits(){
@@ -89,11 +88,7 @@ void DifferentialDrive::applyWheelSpeedsLimits(){
     if (v_l < min_speed && v_l > 0) v_l = 0;
     else if (v_l > -min_speed && v_l < 0) v_l = 0;
 
-
     // ROS_INFO("after limits v_r: %f, v_l: %f", v_r, v_l);
-
-    // TODO: apply state machine to enable turning in place and other maneuvers such as turning around one wheel
-
 } 
 
 void DifferentialDrive::computeOdom(){

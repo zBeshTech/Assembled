@@ -10,16 +10,18 @@ void bumper::bumperCallback(const std_msgs::Bool::ConstPtr& msg){
     if (msg->data == true)
     {
         if (bumper_state == released){
-        ROS_WARN("bumperCallback: Bumper %s is pressed", name.c_str());
-        bumper_state = pressed;
+        ROS_WARN("bumperCallback: Bumper %s is pressed, changing state from released to pressed", name.c_str());
         assembled.performRecoveryRoutine(*this);
         }
+        bumper_state = pressed;
     }
     else
     {
         if (bumper_state == pressed){
-            bumper_state = released;
+            ROS_WARN("bumperCallback: Bumper %s is released", name.c_str());
+            assembled.changeState(Assembled::State::IDLE);
         }
+        bumper_state = released;
     }
 }
 

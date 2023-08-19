@@ -21,7 +21,7 @@ public:
     ~Assembled() = default;
     // passable function 
     void performRecoveryRoutine(Sensor& sensor);
-    enum class State {IDLE, MOVING, STOPPED, ERROR};
+    enum class State {IDLE, MOVING, STOPPED, ERROR, REVERSE};
     void changeState(State new_state);
 
   protected:

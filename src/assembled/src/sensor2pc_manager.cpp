@@ -23,6 +23,7 @@ void Sensor2PcManager::initPc(std::string frame_id)
 
 void Sensor2PcManager::addPoint(float x, float y, float z)
 {
+
     // append one point to the point cloud
     sensor_msgs::PointCloud2Modifier modifier(pc);
     modifier.setPointCloud2FieldsByString(1, "xyz");
@@ -30,9 +31,34 @@ void Sensor2PcManager::addPoint(float x, float y, float z)
     sensor_msgs::PointCloud2Iterator<float> iter_x(pc, "x");
     sensor_msgs::PointCloud2Iterator<float> iter_y(pc, "y");
     sensor_msgs::PointCloud2Iterator<float> iter_z(pc, "z");
+
+
+    
+    if (iter_x != iter_x.end() &&
+        iter_y != iter_y.end() &&
+        iter_z != iter_z.end()) {
+        ROS_ERROR("Point cloud iterators are invalid");
+        return;
+    }
     iter_x[pc.width] = x;
     iter_y[pc.width] = y;
     iter_z[pc.width] = z;
+
+    if (pc.fields.empty()) {
+        ROS_ERROR("Point cloud message has no fields");
+        return;
+    }
+
+    // Check if point cloud format is "xyz"
+    if (pc.fields.size() != 3 ||
+        pc.fields[0].name != "x" ||
+        pc.fields[1].name != "y" ||
+        pc.fields[2].name != "z") {
+        ROS_ERROR("Point cloud format is not 'xyz'");
+        return;
+    }
+
+    
 }
 
 void Sensor2PcManager::publishPc()
